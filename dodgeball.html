@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DVD Pet Image Stretched</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    background: transparent;
+    overflow: hidden;
+    cursor: grab;
+  }
+
+  #dvd {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    transform-origin: center;
+    cursor: grab;
+    z-index: 1;
+    background-image: url('https://raw.githubusercontent.com/flamgo124/sounds-for-tuff-stuff/refs/heads/main/dodgeball.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+</style>
+</head>
+<body>
+<div id="dvd"></div>
+
+<script>
+const dvd = document.getElementById('dvd');
+
+// starting position
+let x = Math.random() * (window.innerWidth - 100);
+let y = Math.random() * (window.innerHeight - 100);
+
+// starting velocity
+let dx = (Math.random() * 4 + 2) * (Math.random() < 0.5 ? 1 : -1);
+let dy = (Math.random() * 4 + 2) * (Math.random() < 0.5 ? 1 : -1);
+
+const gravity = 0.2, friction = 0.995, VELOCITY_EPS = 0.5;
+let currentAngle = 0;
+
+// dragging
+let isDragging = false, offsetX = 0, offsetY = 0;
+
+dvd.addEventListener('mousedown', e => {
+  isDragging = true;
+  offsetX = e.clientX - x;
+  offsetY = e.clientY - y;
+  dvd.style.cursor = 'grabbing';
+});
+
+document.addEventListener('mouseup', e => {
+  isDragging = false;
+  dvd.style.cursor = 'grab';
+  dx = (e.clientX - x - offsetX) * 0.2;
+  dy = (e.clientY - y - offsetY) * 0.2;
+});
+
+document.addEventListener('mousemove', e => {
+  if (isDragging) { x = e.clientX - offsetX; y = e.clientY - offsetY; }
+});
+
+// random pushes every 3–15 sec
+function randomPush() {
+  if (!isDragging) {
+    const angle = Math.random() * Math.PI * 2;
+    const force = Math.random() * 10 + 5;
+    dx += Math.cos(angle) * force;
+    dy += Math.sin(angle) * force * 1.5; // upward boost
+  }
+  setTimeout(randomPush, 3000 + Math.random() * 12000);
+}
+setTimeout(randomPush, 3000 + Math.random() * 12000);
+
+function animate() {
+  if (!isDragging) {
+    dy += gravity;
+    x += dx;
+    y += dy;
+    dx *= friction;
+    dy *= friction;
+
+    let bounced = false;
+    if (x <= 0) { x = 0; dx = Math.abs(dx) > VELOCITY_EPS ? -dx : 0; bounced = true; }
+    else if (x + 100 >= window.innerWidth) { x = window.innerWidth - 100; dx = Math.abs(dx) > VELOCITY_EPS ? -dx : 0; bounced = true; }
+
+    if (y <= 0) { y = 0; dy = Math.abs(dy) > VELOCITY_EPS ? -dy : 0; bounced = true; }
+    else if (y + 100 >= window.innerHeight) { y = window.innerHeight - 100; dy = Math.abs(dy) > VELOCITY_EPS ? -dy : 0; bounced = true; }
+  }
+
+  // faster rotation
+  let targetAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+  let diff = targetAngle - currentAngle;
+  if (diff > 180) diff -= 360;
+  if (diff < -180) diff += 360;
+  currentAngle += diff * 0.25;
+
+  // speed-based stretch (both along and perpendicular)
+  let speed = Math.sqrt(dx*dx + dy*dy);
+  let stretchAlong = 1 + Math.min(speed * 0.03, 0.4);
+  let stretchPerp  = 1 - Math.min(speed * 0.02, 0.2);
+
+  dvd.style.transform = `rotate(${currentAngle}deg) scaleX(${stretchAlong}) scaleY(${stretchPerp}) scaleX(-1)`;
+  dvd.style.left = x + 'px';
+  dvd.style.top = y + 'px';
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+
+window.addEventListener('resize', () => {
+  if (x + 100 > window.innerWidth) x = window.innerWidth - 100;
+  if (y + 100 > window.innerHeight) y = window.innerHeight - 100;
+});
+</script>
+</body>
+</html>
