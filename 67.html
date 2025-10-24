@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>67 DVD Screensaver</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+
+    #dvd {
+      position: absolute;
+      font-size: 100px;
+      font-weight: bold;
+      color: lime;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="dvd">67</div>
+
+  <script>
+    const dvd = document.getElementById('dvd');
+    let x = 100;
+    let y = 100;
+    let dx = 4;
+    let dy = 4;
+
+    const colors = ['lime', 'red', 'blue', 'yellow', 'cyan', 'magenta', 'orange', 'white'];
+
+    function move() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const rect = dvd.getBoundingClientRect();
+
+      x += dx;
+      y += dy;
+
+      if (x <= 0 || x + rect.width >= width) {
+        dx = -dx;
+        dvd.style.color = colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      if (y <= 0 || y + rect.height >= height) {
+        dy = -dy;
+        dvd.style.color = colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      dvd.style.left = x + 'px';
+      dvd.style.top = y + 'px';
+
+      requestAnimationFrame(move);
+    }
+
+    move();
+  </script>
+</body>
+</html>
